@@ -505,7 +505,7 @@
       // 정규식으로 각 항목 줄 찾기
       const freezerMatch = text.match(/- ❄️ 냉동고:\s*(.*)/);
       const fridgeMatch = text.match(/- 🥦 냉장실:\s*(.*)/);
-      const pantryMatch = text.match(/- ☕️ 팬트리):\s*(.*)/);
+      const pantryMatch = text.match(/- ☕️ 팬트리:\s*(.*)/);
 
       // 데이터 파싱 및 삽입을 도와주는 내부 함수
       const processMatchedLine = (matchResult, type) => {
