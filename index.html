@@ -8,7 +8,6 @@
   /* --- 디자인 콘셉트: Modern Skeuomorphism --- */
   :root {
     --bg-color: #f7f8fa;
-    /* PC에서 더 시원하게 보이도록 최대 너비를 넓혔습니다 */
     --app-width: 760px; 
     
     --fridge-metal: #dee3eb;
@@ -18,7 +17,8 @@
     
     --curtain-color: #f4eee7;
     --curtain-shadow: rgba(0,0,0,0.08);
-    --pantry-wicker: #ca9876;
+    /* 빈티지한 옅은 보라색 패턴으로 변경 */
+    --pantry-wicker: #c8b8d8; 
     
     --text-primary: #2e3440;
     --text-secondary: #5e6c7e;
@@ -108,26 +108,26 @@
     transition: opacity 0.2s;
   }
 
+  /* 버튼 색상도 보라색 테마에 맞게 살짝 톤 조정 */
   .btn-freezer { background-color: #92b9ca; } 
   .btn-fridge { background-color: #a4be9a; }  
-  .btn-basket { background-color: #caa18d; }  
+  .btn-basket { background-color: #a894c2; }  
   .input-group button:hover { opacity: 0.8; }
 
-  /* --- 2 & 3. 저장 공간 좌우 배치 래퍼 (반응형 핵심!) --- */
+  /* --- 2 & 3. 저장 공간 좌우 배치 래퍼 --- */
   .storage-wrapper {
     display: flex;
     gap: 20px;
     align-items: stretch;
-    flex-direction: row; /* 기본은 PC용 좌우 배치 */
+    flex-direction: row;
   }
 
-  /* ✨ 스마트폰/작은 테블릿용 미디어 쿼리 (가로 768px 이하일 때 작동) ✨ */
   @media (max-width: 768px) {
     .storage-wrapper {
-      flex-direction: column; /* 위아래로 쌓이게 변경! */
+      flex-direction: column; 
     }
     .pantry-wrapper {
-      min-height: 280px; /* 위아래로 배치될 때 팬트리 높이 확보 */
+      min-height: 280px; 
     }
   }
 
@@ -169,7 +169,7 @@
   .freezer { height: 180px; }
   .fridge { height: 280px; }
 
-  /* --- 3. 실온 보관 팬트리 디자인 --- */
+  /* --- 3. 실온 보관 팬트리 디자인 (빈티지 옅은 보라) --- */
   .pantry-container {
     flex: 1;
     display: flex;
@@ -179,7 +179,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    border: 3px solid #b58066;
+    border: 3px solid #a894c2; /* 보라색 테두리 */
     border-radius: 15px;
     background: 
       linear-gradient(135deg, var(--pantry-wicker) 25%, transparent 25%) -50px 0,
@@ -187,7 +187,7 @@
       linear-gradient(315deg, var(--pantry-wicker) 25%, transparent 25%),
       linear-gradient(45deg, var(--pantry-wicker) 25%, transparent 25%);
     background-size: 20px 20px;
-    background-color: #b58066;
+    background-color: #e3dff0; /* 배경을 옅은 보라색으로 변경 */
     box-shadow: 0 8px 20px rgba(0,0,0,0.12), inset 0 5px 15px rgba(0,0,0,0.1);
     overflow: hidden;
   }
@@ -202,18 +202,20 @@
     background-image:
       linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
       linear-gradient(to right, rgba(0,0,0,0.03) 12px, rgba(255,255,255,0.04) 12px);
-    background-size: 2px 100%, 25px 100%;
+    background-size: 2px 100%, 25px 100%; /* 기본 커튼 주름 너비 */
     box-shadow: inset 0 2px 15px rgba(0,0,0,0.04), inset 0 0 25px rgba(0,0,0,0.01);
     cursor: pointer;
     z-index: 20;
     transform-origin: left;
-    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    /* transform과 background-size를 같이 애니메이션 처리하여 접히는 효과 연출 */
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-size 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .pantry-curtain.open {
-    transform: scaleX(0.12) skewY(-2deg);
-    opacity: 0.95;
-    box-shadow: 10px 0 20px rgba(0,0,0,0.15);
+    transform: scaleX(0.15); /* 왼쪽으로 슬라이딩되듯 줄어듦 */
+    background-size: 2px 100%, 6px 100%; /* 열릴 때 주름이 촘촘해지며 아코디언처럼 접힘 */
+    opacity: 1;
+    box-shadow: 8px 0 20px rgba(0,0,0,0.25);
   }
 
   .curtain-label {
@@ -225,7 +227,7 @@
     border-radius: 20px;
     font-weight: bold;
     font-size: 14px;
-    color: #a3756a;
+    color: #7a6596; /* 라벨 색상도 보라 톤으로 맞춤 */
     box-shadow: 0 3px 8px rgba(0,0,0,0.06);
     transition: opacity 0.5s;
     user-select: none;
@@ -266,7 +268,11 @@
     border-radius: 6px;
     box-shadow: inset 1px 1px 3px rgba(255,255,255,0.4), 1px 1px 3px rgba(0,0,0,0.1);
   }
-  .door.open { transform: rotateY(-118deg); }
+  /* 각도를 줄여 문이 완전히 얇아지지 않게 해 닫기 편하게 만듦 */
+  .door.open { 
+    transform: rotateY(-70deg); 
+    box-shadow: 15px 5px 20px rgba(0,0,0,0.2); 
+  }
 
   /* --- 내부 재료 디자인 --- */
   .contents {
@@ -311,7 +317,9 @@
 
   .freezer .item { background: #e6f0f3; color: #5a8e9e; border: 1px solid #d9e7ea; }
   .fridge .item { background: #eff3ea; color: #6d8e64; border: 1px solid #e1e9db; }
-  .pantry-wrapper .item { background: #f3efea; color: #a3756a; border: 1px solid #ede4db; }
+  /* 팬트리 아이템도 보라색 테마에 맞게 색상 변경 */
+  .pantry-wrapper .item { background: #f4f1f8; color: #7a6596; border: 1px solid #e1dced; }
+  
   .item-count { font-size: 11px; background: white; padding: 2px 7px; border-radius: 12px; color: #888; border: 1px solid #eee; }
 
   /* --- 푸터 버튼 디자인 --- */
@@ -411,7 +419,7 @@
     let inventory = { freezer: [], fridge: [], pantry: [] };
 
     window.onload = function() {
-      const savedData = localStorage.getItem('mySmartFridge_Final_v2');
+      const savedData = localStorage.getItem('mySmartFridge_Final_v3');
       if (savedData) {
         inventory = JSON.parse(savedData);
         renderAllContents();
@@ -419,7 +427,7 @@
     }
 
     function saveData() {
-      localStorage.setItem('mySmartFridge_Final_v2', JSON.stringify(inventory));
+      localStorage.setItem('mySmartFridge_Final_v3', JSON.stringify(inventory));
     }
 
     function findEmoji(word) {
