@@ -113,6 +113,40 @@
   .btn-basket { background-color: #a894c2; }  
   .input-group button:hover { opacity: 0.8; }
 
+  /* --- 통째로 붙여넣기 디자인 --- */
+  .bulk-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f4f6f9;
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px dashed #c0c9d6;
+  }
+  .bulk-input-wrapper textarea {
+    width: 100%;
+    height: 90px;
+    padding: 12px;
+    border: 1px solid #dcdde1;
+    border-radius: 10px;
+    resize: none;
+    font-size: 13px;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+  .btn-bulk {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    align-self: flex-end;
+  }
+  .btn-bulk:hover { opacity: 0.9; }
+
   /* --- 2 & 3. 저장 공간 좌우 배치 래퍼 --- */
   .storage-wrapper {
     display: flex;
@@ -348,21 +382,26 @@
     </div>
 
     <div class="input-section">
-      <h3>🛒 장바구니 채우기 (쉼표로 구분해서 여러 개 입력 가능)</h3>
+      <h3>🛒 장바구니 채우기</h3>
       
       <div class="manual-input-wrapper">
         <div class="input-group">
-          <input type="text" id="freezerInput" placeholder="예: 만두, 얼음, 아이스크림" onkeypress="handleEnter(event, 'freezer')">
+          <input type="text" id="freezerInput" placeholder="예: 만두, 얼음" onkeypress="handleEnter(event, 'freezer')">
           <button class="btn-freezer" onclick="addItem('freezer')">추가</button>
         </div>
         <div class="input-group">
-          <input type="text" id="fridgeInput" placeholder="예: 사과, 우유, 계란" onkeypress="handleEnter(event, 'fridge')">
+          <input type="text" id="fridgeInput" placeholder="예: 사과, 우유" onkeypress="handleEnter(event, 'fridge')">
           <button class="btn-fridge" onclick="addItem('fridge')">추가</button>
         </div>
         <div class="input-group">
-          <input type="text" id="pantryInput" placeholder="예: 양파, 감자, 빵" onkeypress="handleEnter(event, 'pantry')">
+          <input type="text" id="pantryInput" placeholder="예: 양파, 감자" onkeypress="handleEnter(event, 'pantry')">
           <button class="btn-basket" onclick="addItem('pantry')">추가</button>
         </div>
+      </div>
+
+      <div class="bulk-input-wrapper">
+        <textarea id="bulkInput" placeholder="[복사한 목록 붙여넣기]&#13;&#10;예) - ❄️ 냉동고: 고체카레, 고춧가루...&#13;&#10;- 🥦 냉장실: 간장, 계란..."></textarea>
+        <button class="btn-bulk" onclick="importFromText()">📥 한 번에 채우기</button>
       </div>
     </div>
 
@@ -380,7 +419,7 @@
       <div class="pantry-container">
         <div class="pantry-wrapper">
           <div class="pantry-curtain" onclick="toggleElement(this)">
-            <span class="curtain-label">🧅 실온 보관 (팬트리)</span>
+            <span class="curtain-label">☕️ 팬트리</span>
           </div>
           <div class="contents" id="pantryContents"></div>
         </div>
@@ -399,7 +438,7 @@
       '당근': '🥕', '고추': '🌶️', '오이': '🥒', '상추': '🥬', '브로콜리': '🥦', '마늘': '🧄', '양파': '🧅', '버섯': '🍄',
       '식빵': '🍞', '빵': '🍞', '치즈': '🧀', '고기': '🥩', '소고기': '🥩', '돼지고기': '🥩', '닭고기': '🍗', '계란': '🥚',
       '우유': '🥛', '얼음': '🧊', '아이스크림': '🍦', '생선': '🐟', '새우': '🦐', '오징어': '🦑', '밥': '🍚', '면': '🍜',
-      '만두': '🥟', '카레': '🍛', '물': '💧', '음료수': '🧃', '커피': '☕', '맥주': '🍺', '소주': '🍶'
+      '만두': '🥟', '카레': '🍛', '물': '💧', '음료수': '🧃', '커피': '☕', '맥주': '🍺', '소금': '🧂', '소스': '🥫'
     };
 
     let inventory = { freezer: [], fridge: [], pantry: [] };
@@ -420,7 +459,7 @@
       for (const key in emojiDictionary) {
         if (word.includes(key)) return emojiDictionary[key];
       }
-      return '📦';
+      return '🥄';
     }
 
     function toggleElement(element) {
@@ -429,8 +468,9 @@
 
     function insertItemToInventory(type, name, count) {
       const pureName = name.replace(/^[^\s]+/, '').trim() || name;
+      if (pureName === '없음' || pureName === '') return; // '없음' 데이터는 무시
+
       const existingItem = inventory[type].find(item => item.name === pureName);
-      
       if (existingItem) {
         existingItem.count = (existingItem.count || 1) + count;
       } else {
@@ -439,24 +479,64 @@
       inventory[type].sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    // 쉼표로 구분해서 한 번에 여러 개 넣는 로직으로 변경!
     function addItem(type) {
       const input = document.getElementById(type + 'Input');
       let value = input.value.trim();
       
       if (value !== '') {
-        // 쉼표(,)를 기준으로 문자를 쪼개고, 앞뒤 공백을 없앤 뒤, 빈 칸이 아닌 것만 골라냄
         const items = value.split(',').map(item => item.trim()).filter(item => item !== '');
+        items.forEach(itemName => insertItemToInventory(type, itemName, 1));
         
-        items.forEach(itemName => {
-          insertItemToInventory(type, itemName, 1);
-        });
-
         renderContents(type);
         saveData();
         input.value = '';
         input.focus();
       }
+    }
+
+    // --- 통째로 붙여넣기 분류 기능 ---
+    function importFromText() {
+      const text = document.getElementById('bulkInput').value;
+      if (!text.trim()) {
+        alert("복사한 텍스트를 붙여넣어 주세요!");
+        return;
+      }
+
+      // 정규식으로 각 항목 줄 찾기
+      const freezerMatch = text.match(/- ❄️ 냉동고:\s*(.*)/);
+      const fridgeMatch = text.match(/- 🥦 냉장실:\s*(.*)/);
+      const pantryMatch = text.match(/- ☕️ 팬트리):\s*(.*)/);
+
+      // 데이터 파싱 및 삽입을 도와주는 내부 함수
+      const processMatchedLine = (matchResult, type) => {
+        if (matchResult && matchResult[1]) {
+          const itemsStr = matchResult[1].trim();
+          if (itemsStr === '없음') return;
+          
+          const items = itemsStr.split(',').map(i => i.trim()).filter(i => i);
+          items.forEach(itemStr => {
+            let name = itemStr;
+            let count = 1;
+            
+            // "사과(3개)" 처럼 수량이 적혀있는 경우 분리해내는 로직
+            const countMatch = itemStr.match(/(.+?)\((\d+)개\)$/);
+            if (countMatch) {
+              name = countMatch[1].trim();
+              count = parseInt(countMatch[2], 10);
+            }
+            insertItemToInventory(type, name, count);
+          });
+        }
+      };
+
+      processMatchedLine(freezerMatch, 'freezer');
+      processMatchedLine(fridgeMatch, 'fridge');
+      processMatchedLine(pantryMatch, 'pantry');
+
+      renderAllContents();
+      saveData();
+      document.getElementById('bulkInput').value = '';
+      alert('목록이 성공적으로 추가되었습니다!');
     }
 
     function renderContents(type) {
@@ -511,7 +591,7 @@
       const aiPrompt = `현재 저희 집 식재료 보유 상태입니다:\n\n` +
                        `- ❄️ 냉동고: ${getItemsText('freezer')}\n` +
                        `- 🥦 냉장실: ${getItemsText('fridge')}\n` +
-                       `- 🧅 실온 보관(팬트리): ${getItemsText('pantry')}\n\n` +
+                       `- ☕️ 팬트리: ${getItemsText('pantry')}\n\n` +
                        `이 재료들을 최대한 활용해서 만들 수 있는 맛있고 간단한 요리 레시피 3가지를 추천해 줘. 부족한 양념류는 기본적으로 집에 있다고 가정해도 좋아.`;
 
       navigator.clipboard.writeText(aiPrompt).then(() => {
